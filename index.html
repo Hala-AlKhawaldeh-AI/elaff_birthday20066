@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>✨ عالم إيلاف الملكي ✨</title>
+    <div id="hearts-layer" style="position: fixed; top:0; left:0; width:100vw; height:100vh; pointer-events:none; z-index:999;"></div>
+
+    <!-- موسيقى الخلفية -->
+    <audio id="bg-music" loop autoplay src="https://assets.mixkit.co/active_storage/sfx/2045/2045-84.wav" type="audio/wav"></audio>
+    <iframe src="https://assets.mixkit.co/active_storage/sfx/2045/2045-84.wav" allow="autoplay" style="display:none" id="iframeAudio"></iframe>
+
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght=400;700;900&display=swap');
+        
+        body { 
+            background: linear-gradient(135deg, #ffe6f0 0%, #e6f2ff 100%) !important; 
+            margin: 0; 
+            padding: 0; 
+            font-family: 'Cairo', sans-serif;
+            direction: rtl;
+        }
+
+        /* شريط التنقل العلوي بين الصفحات */
+        .navbar {
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(10px);
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            padding: 15px;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 4px 20px rgba(255, 102, 163, 0.1);
+            border-bottom: 2px solid #ffb3d1;
+        }
+        .nav-btn {
+            background: transparent;
+            color: #ff3385;
+            border: 2px solid transparent;
+            padding: 8px 16px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 20px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .nav-btn.active, .nav-btn:hover {
+            background: linear-gradient(135deg, #ff66a3, #ff3385);
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 51, 133, 0.2);
+        }
+        
+        /* الحاوية الرئيسية للبيج */
+        .page-content {
+            display: none; /* إخفاء الصفحات افتراضياً */
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(10px);
+            padding: 40px 20px;
+            border-radius: 40px;
+            text-align: center;
+            box-shadow: 0 25px 55px rgba(255, 102, 163, 0.15);
+            border: 3px solid #ffb3d1;
+            max-width: 700px;
+            margin: 30px auto;
+            animation: fadeIn 0.5s ease-out;
+        }
+        .page-content.active {
+            display: block; /* إظهار البيج النشط فقط */
+        }
+
+        .main-title { color: #ff3385; font-weight: 900; font-size: 34px; margin-bottom: 5px; }
+
+        /* العداد الزمني */
+        .countdown-board { display: flex; justify-content: center; gap: 15px; margin: 30px 0; }
+        .time-card {
+            background: white; border: 2px solid #ffb3d1; border-radius: 25px;
+            padding: 15px; min-width: 80px; box-shadow: 0 10px 25px rgba(255, 51, 133, 0.08);
+        }
+        .time-card.blue-theme { border-color: #99ccff; }
+        .num-display { font-size: 30px; font-weight: 900; color: #ff3385; display: block; }
+        .blue-theme .num-display { color: #0066cc; }
+        .label-display { font-size: 13px; color: #666; font-weight: bold; }
+
+        /* صندوق البريد للرسائل */
+        .inbox-section {
+            background: linear-gradient(135deg, #ffffff 0%, #fff0f5 100%);
+            border: 3px solid #ff66a3; border-radius: 30px; padding: 30px 20px;
+            box-shadow: 0 12px 30px rgba(255, 102, 163, 0.08); position: relative;
+        }
+        .inbox-display {
+            background: white; border: 2px inset #ffb3d1; border-radius: 20px; padding: 25px;
+            min-height: 120px; margin-top: 20px; font-size: 19px; color: #0052cc; font-weight: bold;
+            line-height: 1.8; display: flex; align-items: center; justify-content: center;
+            box-shadow: inset 0 4px 10px rgba(0,0,0,0.03); animation: scaleUp 0.3s ease-out;
+        }
+
+        /* كيكة الميلاد */
+        .cake-section { background: white; padding: 30px; border-radius: 30px; border: 2px dashed #ff66a3; }
+        .candle { font-size: 50px; display: inline-block; position: relative; cursor: pointer; }
+        .flame { position: absolute; top: -20px; left: 50%; transform: translateX(-50%); font-size: 24px; animation: flicker 0.3s ease-in-out infinite alternate; }
+        @keyframes flicker { 0% { transform: translateX(-50%) scale(1); } 100% { transform: translateX(-50%) scale(1.2) rotate(5deg); } }
+
+        /* ألبوم الصور */
+        .gallery-viewer { background: white; padding: 25px; border-radius: 30px; border: 2px solid #e6f2ff; }
+        .image-slide { display: none; animation: scaleUp 0.5s ease-out; }
+        .image-slide img { width: 100%; max-height: 420px; object-fit: cover; border-radius: 25px; border: 4px solid #fff0f5; }
+        .caption-bubble { background: #fff0f5; padding: 15px; border-radius: 15px; margin-top: 15px; color: #ff3385; font-weight: 700; font-size: 17px; border-right: 5px solid #ff3385; }
+
+        /* الأزرار */
+        .control-btn {
+            background: linear-gradient(135deg, #ff66a3, #ff3385); color: white; border: none; padding: 14px 35px;
+            font-size: 16px; font-weight: bold; border-radius: 50px; cursor: pointer; transition: all 0.3s;
+            box-shadow: 0 5px 15px rgba(255, 51, 133, 0.2);
+        }
+        .control-btn:hover { transform: scale(1.05); }
+        .btn-prev { background: linear-gradient(135deg, #66b2ff, #3399ff); }
+        .btn-group { display: flex; justify-content: space-between; margin-top: 25px; }
+
+        .heart-blast { position: absolute; font-size: 26px; animation: floatAndFade 1s ease-out forwards; pointer-events: none; z-index: 9999; }
+        @keyframes floatAndFade { 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 1; } 100% { transform: translate(var(--mx), var(--my)) scale(1.5); opacity: 0; } }
+        @keyframes scaleUp { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body>
+
+<!-- شريط التنقل بين الصفحات مستقل فوق -->
+<div class="navbar">
+    <button class="nav-btn active" onclick="switchPage('home-page', this)">✨ الرئيسية</button>
+    <button class="nav-btn" onclick="switchPage('inbox-page', this)">📬 صندوق الرسائل</button>
+    <button class="nav-btn" onclick="switchPage('gallery-page', this)">📸 ألبوم الصور</button>
+    <button class="nav-btn" onclick="switchPage('cake-page', this)">🎂 طفّي الشمعة</button>
+</div>
+
+<!-- البيج 1: الصفحة الرئيسية والعداد -->
+<div id="home-page" class="page-content active">
+    <div class="main-title">✨ عـالـم إيـلاف الـمـلـكـي ✨</div>
+    <p style="color: #555; font-weight: bold; font-size: 18px;">كل ثانية بتمر بتقربنا من اليوم المنتظر.. يوم ميلاد أحلى قمر 👑</p>
+
+    <div class="countdown-board">
+        <div class="time-card"><span class="num-display" id="c-days">00</span><span class="label-display">أيام</span></div>
+        <div class="time-card blue-theme"><span class="num-display" id="c-hours">00</span><span class="label-display">ساعات</span></div>
+        <div class="time-card"><span class="num-display" id="c-min">00</span><span class="label-display">دقائق</span></div>
+        <div class="time-card blue-theme"><span class="num-display" id="c-sec">00</span><span class="label-display">ثواني</span></div>
+    </div>
+    <p style="color: #ff3385; font-weight: bold; margin-top: 30px; font-size: 16px;">تنقلي بين الصفحات من الشريط العلوي لاستكشاف مفاجآتكِ! 👀💖</p>
+</div>
+
+<!-- البيج 2: بيج صندوق الرسائل المستقل -->
+<div id="inbox-page" class="page-content">
+    <div class="inbox-section">
+        <h3 style="color: #ff3385; margin-top: 0; font-size: 22px;">📬 صـنـدوق الـرسـائـل الـسـريّـة الخـاص بـكِ</h3>
+        <p style="color: #666; font-size: 15px; margin-bottom: 20px;">كبسة وحدة هون ورح تطلعلكِ رسالة معبرة ومسج خاص من هالة لقلبكِ مباشرة! ✉️</p>
+        <button class="control-btn" onclick="drawMessage()">اسحبي رسالة اليوم 💌</button>
+        <div class="inbox-display" id="message-box">اكبسي على الزر في الأعلى لفتح أولى الرسائل المخبأة لكِ... ✨</div>
+    </div>
+</div>
+
+<!-- البيج 3: بيج ألبوم الصور المستقل -->
+<div id="gallery-page" class="page-content">
+    <div class="gallery-viewer">
+        <h3 style="color: #0066cc; margin-top: 0; font-size: 22px; margin-bottom: 20px;">📸 ألبوم صور ملكة الشاشة 👑</h3>
+        <div class="image-slide"><img src="https://i.ibb.co/4ntwSYCf/image.png"><div class="caption-bubble">جمالكِ هون يجنن! ما شاء الله ملكة بكل تفاصيلكِ 🌸</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/wh0YRc7t/image.png"><div class="caption-bubble">هالصورة إلها مكانة خاصة بقلبي، ضحكتكِ فيها بتنور الدنيا 💕</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/yFPG7FHG/image.png"><div class="caption-bubble">أناقة ورقة وفخامة.. مو عادية لولتي ✨</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/mFBXgPbV/image.png"><div class="caption-bubble">يا رب ضحكتكِ وفرحتكِ ما تغيب عن وجهكِ بكل السنين الجاية 💖</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/DHV43V6R/image.png"><div class="caption-bubble">كل صورة إلكِ بتحكي قصة جمال ونقاء تشبه قلبكِ الأبيض 🧁</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/LDjqjmBT/image.png"><div class="caption-bubble">قمرررر! عسى كل أيامكِ الجاية تكون حلوة ومشرقة مثلكِ 👑</div></div>
+        <div class="image-slide"><img src="https://i.ibb.co/b5XYXPd0/image.png"><div class="caption-bubble">أجمل من يـكبر هالسنة.. فخورة فيكِ وبكل خطوة بتعمليها 🎈</div></div>
+        <div class="btn-group">
+            <button class="control-btn btn-prev" onclick="moveSlide(-1)">◀ السابق</button>
+            <button class="control-btn" onclick="moveSlide(1)">التالي ▶</button>
+        </div>
+    </div>
+
+    <!-- كرت الرسالة الختامي يظهر بآخر الألبوم -->
+    <div id="big-surprise-letter" style="display:none; margin-top:40px; background: linear-gradient(135deg, #ffffff 0%, #fff0f5 100%); padding: 25px; border-radius: 25px; border: 3px dashed #ff3385; animation: scaleUp 0.5s;">
+        <h2 style="color: #ff3385; font-weight: bold; margin-top:0;">💌 رسالة من قلب هالة لروح قلبها 💌</h2>
+        <p style="font-size: 22px; color: #0052cc; font-weight: 900; line-height: 1.8;">
+            "كل عام وانتِ بالف خير يا روح قلبي <br>
+            ان شاء الله كل سنين حياتك تكون سعادة وهناا يااارب"
+        </p>
+        <span style="font-size: 50px;">🎂🍰🧁🎈👑✨</span>
+    </div>
+</div>
+
+<!-- البيج 4: بيج كيكة الميلاد والنفخ المستقل -->
+<div id="cake-page" class="page-content">
+    <div class="cake-section" id="cake-area">
+        <h3 style="color: #ff3385; margin-top:0; font-size: 20px;" id="cake-instruction">🎂 قربي وانفخي على الشمعة عشان تطفيها! 💨</h3>
+        <div class="candle" id="birthday-candle" onclick="blowOutCandle()"><span class="flame" id="candle-flame">🔥</span>🕯️</div>
+        <div style="font-size: 70px; margin-top: -10px;">🎂</div>
+    </div>
+</div>
+
+<script>
+    // تفعيل دالة التنقل الفوري بين البيجات
+    function switchPage(pageId, btnElement) {
+        // إخفاء كل الصفحات
+        const pages = document.getElementsByClassName('page-content');
+        for (let i = 0; i < pages.length; i++) {
+            pages[i].classList.remove('active');
+        }
+        // إظهار البيج المطلوب
+        document.getElementById(pageId).classList.add('active');
+
+        // تغيير حالة الزر النشط في النافبار
+        const buttons = document.getElementsByClassName('nav-btn');
+        for (let i = 0; i < buttons.length; i++) {
+            buttons[i].classList.remove('active');
+        }
+        btnElement.classList.add('active');
+    }
+
+    // مصفوفة المسجات
+    const messagesPool = [
+        "يا روح قلبي، وجودكِ بحياتي هو النعمة الحقيقية اللي بحمد ربنا عليها كل يوم.. قطعة من السكر أنتِ لقلبي 🌸",
+        "لـ بيست فريند عمري وسندي: شكراً لأنكِ دايماً بتسمعيني، دايماً بتفهميني بدون ما أحكي، ومكانكِ بالقلب ما حدا بيقدر يوصله 💕",
+        "قمر هالسنة وكل سنة.. يا رب عيونكِ الحلوين ما يشوفوا غير الفرح، وملامحكِ الطفولية تضل تضحك وتنور حياتنا ✨",
+        "لولتي الغالية، بتعرفي إنكِ مو بس صاحبتي? أنتِ أختي وكتفي الثابت.. وبحبكِ كتييير أكتر مما بتتخيلي 💖",
+        "يا هديتي من رب العالمين، عسى كل أمنية تمنيتيها بسركِ الحين تتحقق قدام عيونكِ بهالسنة الجديدة من عمركِ 🧁",
+        "ملكة جمال يونيو، كبرتي سنة وكبرت غلاوتكِ وحبكِ بقلبي.. يا أحلى من يكبر هاليوم وألطف قلب بالكون كله 👑",
+        "ضحكتكِ يا إيلاف هي سر من أسرار السعادة، عسى الضحكة هادي تضل رفيقة دربكِ وسنينكِ الجاية كلها هناا يااارب 🎈"
+    ];
+    
+    let msgIndex = 0;
+    function drawMessage() {
+        const box = document.getElementById("message-box");
+        box.style.animation = 'none'; box.offsetHeight;
+        box.style.animation = 'scaleUp 0.3s ease-out';
+        box.innerText = messagesPool[msgIndex];
+        msgIndex = (msgIndex + 1) % messagesPool.length;
+    }
+
+    // العداد التنازلي لـ 27 يونيو
+    function updateSurpriseTimer() {
+        const target = new Date("June 27, 2026 00:00:00").getTime();
+        const now = new Date().getTime();
+        const diff = target - now;
+        if (diff <= 0) return;
+        const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const s = Math.floor((diff % (1000 * 60)) / 1000);
+        document.getElementById("c-days").innerText = d < 10 ? "0" + d : d;
+        document.getElementById("c-hours").innerText = h < 10 ? "0" + h : h;
+        document.getElementById("c-min").innerText = m < 10 ? "0" + m : m;
+        document.getElementById("c-sec").innerText = s < 10 ? "0" + s : s;
+    }
+    setInterval(updateSurpriseTimer, 1000); updateSurpriseTimer();
+
+    // السلايدر
+    let currentSlideIndex = 0; const slides = document.getElementsByClassName("image-slide");
+    function showActiveSlide(index) {
+        if (index >= slides.length) { document.getElementById("big-surprise-letter").style.display = "block"; currentSlideIndex = slides.length - 1; return; }
+        if (index < 0) currentSlideIndex = 0;
+        for (let i = 0; i < slides.length; i++) { slides[i].style.display = "none"; }
+        slides[currentSlideIndex].style.display = "block";
+    }
+    function moveSlide(step) { currentSlideIndex += step; showActiveSlide(currentSlideIndex); }
+    showActiveSlide(0);
+
+    // لمس يطلع قلوب
+    document.addEventListener('click', function(e) {
+        if(e.target.tagName === 'BUTTON' || e.target.closest('#birthday-candle') || e.target.closest('.navbar')) return;
+        const hearts = ['💖', '💕', '✨', '🌸', '💗'];
+        for(let i=0; i<4; i++) {
+            const h = document.createElement('div'); h.className = 'heart-blast';
+            h.innerText = hearts[Math.floor(Math.random() * hearts.length)];
+            h.style.left = e.pageX + 'px'; h.style.top = e.pageY + 'px';
+            h.style.setProperty('--mx', (Math.random() - 0.5) * 160 + 'px');
+            h.style.setProperty('--my', (Math.random() - 0.5) * 160 - 50 + 'px');
+            document.body.appendChild(h); setTimeout(() => h.remove(), 1000);
+        }
+    });
+
+    // تفاعل النفخ
+    let candleBlown = false;
+    function blowOutCandle() {
+        if(candleBlown) return; candleBlown = true;
+        document.getElementById("candle-flame").style.display = "none";
+        document.getElementById("cake-instruction").innerHTML = "🎉 هرااااي! طفت الشمعة! كل عام وأنتِ بمليون خير لولتي! 🥳🎈";
+    }
+
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream) {
+            const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            const analyser = audioContext.createAnalyser();
+            const microphone = audioContext.createMediaStreamSource(stream);
+            microphone.connect(analyser); analyser.fftSize = 256;
+            const bufferLength = analyser.frequencyBinCount; const dataArray = new Uint8Array(bufferLength);
+            function checkBlow() {
+                if(candleBlown) return; analyser.getByteFrequencyData(dataArray);
+                let sum = 0; for(let i=0; i<bufferLength; i++) { sum += dataArray[i]; }
+                if ((sum / bufferLength) > 65) { blowOutCandle(); }
+                requestAnimationFrame(checkBlow);
+            }
+            checkBlow();
+        }).catch(function(e) {});
+    }
+</script>
+</body>
+</html>
